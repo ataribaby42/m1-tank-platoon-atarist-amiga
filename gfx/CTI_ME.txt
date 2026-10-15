@@ -1,0 +1,53 @@
+Grafika pro Shift+F3 – podklady k překreslení
+
+Všechny PNG jsou ve skutečné herní velikosti 1:1.
+Jeden pixel PNG odpovídá jednomu pixelu ve hře. Zvětšení původní
+grafiky je již provedeno; při překreslování neměň rozměry obrázků.
+
+kokpit.png – 320 × 200 pixelů. Průhledný prostor (64,10)–(257,187)
+je určen pro 3D scénu. Spodní řádky 192–199 jsou stavový řádek.
+Tyto oblasti zachovej průhledné. Zbytek kokpitu můžeš zjemnit.
+
+smoke1_atlas.png – 56 × 36 pixelů, čtyři stavy v jednom atlasu.
+Vlevo je stav 0 (před aktivací), vpravo stav 1 (po aktivaci).
+Horní řada: přepínač, každé pole 26 × 20 pixelů.
+Dolní řada: kontrolka, každé pole 26 × 12 pixelů.
+Vnitřní pole začínají na souřadnicích (1,1), (29,1), (1,23), (29,23).
+Přepínač se ve hře kreslí na (309,34), kontrolka na (312,13);
+pravá část těchto podkladů je mimo obraz.
+
+zamerovac_normal.png / zamerovac_thermal.png – 103 × 38 pixelů.
+Zaměřovače pro normální a termální režim, poloha (112,79).
+
+font_atlas.png – 165 × 14 pixelů, znaky zleva v pořadí 0123456789*.
+Každý znak má vnitřní plochu 13 × 12 pixelů. Horní levý pixel
+prvního znaku je (1,1), další znaky začínají po 15 pixelech vpravo.
+Upravuj přímo tento atlas. Samostatná PNG znaků se nepoužívají.
+
+Oba atlasy mají jednobarevné růžové rámečky vně jednotlivých polí.
+Rámečky vyznačují vnější okraje a do hry se NEVKLÁDAJÍ. Kresli uvnitř
+nich; neměň rozměry atlasu ani umístění polí. Průhledné pixely uvnitř
+polí jsou součástí upravitelné plochy. Atlasy jsou stále v měřítku 1:1,
+bez zvětšení náhledu. Souřadnice začínají od nuly.
+
+paleta.png – přesná paleta 16 barev, 16 × 1 pixel.
+paleta_prehled.png – stejné barvy ve větších políčkách s čísly.
+Používej tyto barvy a úplnou průhlednost. Nevkládej vyhlazování
+ani částečně průhledné pixely. Bílý font hra za původních podmínek
+přebarvuje podle režimu stejně jako původní text vzdálenosti.
+
+Všechny editovatelné podklady jsou v adresáři gfx v kořeni projektu.
+Nové bitmapy a obsah obou atlasů jsou skutečně použité ve finálních ADF a ST. Po překreslení
+je potřeba upravené PNG znovu sestavit do herních disket; samotné uložení
+PNG na PC již hotovou disketu nezmění. Rozmístění a rozměry jsou také
+uvedeny v rozmisteni.json.
+
+Po úpravě PNG spusť z kořene projektu:
+  python src/build_all.py --platform all
+Ve Windows lze použít build.bat (v PowerShellu .\build.bat).
+Tyto příkazy převedou grafiku, sestaví a ověří finální ADF i ST do output.
+Pouze Amiga: python src/build_all.py
+Pouze Atari ST: python src/build_all.py --platform st
+Pouze převod grafiky: python src/build_assets.py nebo python src/build_st_assets.py
+Skripty vstupní PNG nepřepisují. Návod je v src/CTI_ME.txt;
+mezivýsledky a aktuální kontrolní zprávy jsou v analysis/build.

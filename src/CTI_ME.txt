@@ -1,0 +1,219 @@
+Opakovatelné sestavení M1 Tank Platoon
+
+Příkazy spouštěné z kořene projektu:
+
+  build.bat
+    Windows: sestaví obě platformy. V PowerShellu použij .\build.bat.
+    Upřednostní Python v .venv\Scripts\python.exe, jinak python z PATH.
+    Parametry předává do src/build_all.py; lze použít --platform amiga
+    nebo --platform st. Při chybě vrací nenulový návratový kód.
+
+  python src/build_all.py --platform st
+  python src/build_st.py
+    Sestaví a ověří kompletní Atari ST verzi z assets/M1 Tank Platoon.st.
+    Používá stejná upravená PNG a atlasy v gfx jako Amiga.
+    Výstup: output/M1TankPlatoon_modded.st
+    Mezivýsledky a ověřovací zprávy: analysis/build/st.
+    ADF pro Amigu se při tomto sestavení nemění.
+    U vstupní ST diskety je povolena změna uloženého ROSTER.TNK a jeho
+    data zápisu; ostatní bajty stále chrání kontrolní součet. Posádky se zachovají.
+
+  python src/build_st_assets.py
+    Pouze převede společné PNG do nativního formátu Atari ST.
+
+  python src/build_all.py --platform all
+    Sestaví postupně kompletní Amiga i Atari ST verzi.
+
+  python src/build_all.py
+    Sestaví a ověří kompletní sadu všech fixů a aktuální grafiky z gfx.
+    Jediný finální výstup: output/M1TankPlatoon_modded.adf
+
+  python src/build_dark_green.py
+    Zpětně kompatibilní příkaz pro stejné kompletní sestavení.
+    Samostatná varianta DarkGreen se již neukládá.
+
+  python src/build_zoom_f3.py
+    Stejné kompletní sestavení: zelená vozidla, hnědé vzdálené tečky,
+    Shift+F3, laser, předsazení, oprava okrajů polygonů, sjednocený thermal
+    a oprava povolání Mi-24.
+    Mapa zůstává červená.
+    Výstup: output/M1TankPlatoon_modded.adf
+    Nejdříve sám sestaví grafiku a zelenou úpravu, přeloží patch,
+    ověří běh instrukcí 68000 a strukturu diskety a pak uloží ADF.
+    Není potřeba předem spouštět jiné skripty ani mít staré ADF v output.
+
+  python src/build_assets.py
+    Pouze převede PNG a oba atlasy z gfx do herních dat.
+    Neukládá ADF a nepřepisuje žádný vstupní PNG.
+
+Skripty lze spustit také absolutní cestou z jiného adresáře.
+Po překreslení PNG stačí spustit python src/build_zoom_f3.py.
+
+Vzdálená tečka nepřátelských vozidel má vlastní materiál.
+V běžných barevných pohledech používá hnědou z palety 06 (#AA5500).
+Obě polygonové úrovně zůstávají zelené, mapa a běžný noční režim
+si zachovávají dosavadní barvy. Všechny termální pohledy používají
+původní střelecké barvy.
+
+Vstupy
+
+  assets/M1TankPlatoon.adf – původní disketa, kontrolovaná pomocí SHA-256.
+  gfx/kokpit.png – 320 × 200; průzor a spodní stavový řádek průhledné.
+  gfx/zamerovac_normal.png, zamerovac_thermal.png – 103 × 38.
+  gfx/font_atlas.png – 165 × 14, pořadí 0123456789*, vnitřek polí 13 × 12.
+  gfx/smoke1_atlas.png – 56 × 36, přepínač nahoře, kontrolka dole;
+    stav 0 vlevo, stav 1 vpravo, vnitřek 26 × 20 a 26 × 12.
+  gfx/paleta.png – pevná původní paleta, 16 × 1.
+
+Grafické pixely jsou 1:1; rámečky atlasů leží mimo pole a nekopírují se
+do hry. Compiler odmítne jiné rozměry, chybějící vstup, barvy mimo
+paletu, částečnou průhlednost a zakrytý průzor nebo stavový řádek.
+Podrobné souřadnice pro překreslení jsou v gfx/CTI_ME.txt.
+
+Vykreslování Shift+F3
+
+  Kokpit se nahraje pouze při vstupu nebo obnově pohledu, zvlášť pro oba
+  obrazové buffery. Smoke 1 se v každém bufferu překreslí pouze při změně
+  stavu. Při návratu se obnoví původní kokpit i aktuální přístroje F3.
+  Původní kreslení skrytých přístrojů se během zoomu vynechá; stavový
+  řádek, herní logika a nativní vykreslování 3D zůstávají aktivní.
+  Zaměřovač a font používají řídké planární bloky vytvořené z PNG při
+  buildu. Průhlednost, barevné pixely i barva upozornění se zachovávají.
+
+Oprava laseru
+
+  Platí pro běžné F3 i Shift+F3. Měření mimo platný rozsah 200–7998 m
+  již nezachytí nový cíl a nespustí skok zaměřovače na jeho střed.
+  Použije původní větev neúspěšného zachycení a ponechá ruční míření.
+  Blikající 0 zůstává signalizací neplatného měření. Platné vzdálenosti
+  4000–7998 m stále umožňují zachycení cíle a zobrazují blikající číslo.
+  Tato oprava laseru nemění výpočet průsečíku s terénem ani balistiku.
+
+Oprava předsazení
+
+  Střela přebírá plnou světovou rychlost vlastního tanku. Časový krok
+  se použije až při pohybu projektilu, nikoli navíc při jejím přičtení.
+  Lead používá změnu světového směru zaměřovače, takže samotné otáčení
+  korby při držení cíle nevytváří falešné předsazení. Původní relativní
+  otáčení věže zůstává zachováno pro zvuk jejího pohonu.
+  Oprava platí pro ruční i zamknuté zaměřování, běžné F3 i Shift+F3.
+  Původní zaokrouhlování úhlů, náhodný rozptyl a balistické tabulky
+  zůstávají stejné; střelba ze stoje bez zatáčení dává stejné výsledky.
+  Kontroly běží před uložením ADF, včetně výsledné kombinace se zoomem.
+
+Oprava svislých artefaktů na hranách 3D okna
+
+  Původní hra uzavírala oříznutý polygon podle výšky jeho vrcholů mimo
+  okno. To vytvářelo nadbytečné svislé čáry na levé a pravé hranici.
+  Oprava používá skutečné průsečíky hran polygonu s hranicí okna.
+  Funguje pro běžné F3, Shift+F3 i ostatní 3D pohledy. Původní projekce,
+  ořezávání čar, vyplňování polygonů a zvláštní kreslení horizontu zůstávají.
+  Neprovádí dodatečné mazání ani překreslování okrajů každého snímku.
+  Nepřidává žádnou další trvale vyhrazenou paměť. Příznaky procesoru
+  ukládá bez privilegovaných instrukcí; funguje i v uživatelském režimu
+  na 68020 a novějších CPU. Dřívější čtení SR na nich způsobovalo
+  výjimku při prvním ořezu obrazu a zablokovalo načítání do 3D.
+
+Sjednocení termálních barev
+
+  Termální dalekohled velitele a termální pohled řidiče vybírají stejnou
+  tabulku materiálů jako původní střelecký thermal. Barvy terénu, objektů
+  a oblohy jsou tedy shodné. Běžné denní a noční pohledy i přepínače
+  senzorů se chovají stejně jako před úpravou. Paleta kokpitu se nemění.
+  Oprava mění jeden bajt původního kódu, bez další paměti a instrukcí.
+
+Výstupy a zdroje
+
+  output/M1TankPlatoon_modded.adf – jediná finální disketa, nahrazená
+    až po úspěšném ověření. Staré varianty se už nesestavují.
+  analysis/build/ – všechny mezivýsledky, testovací game a ADF,
+    data grafiky, seznamy adres, kontrolní součty, zprávy a logy.
+    Obsah tohoto pracovního adresáře se při sestavení obnoví.
+  src/zoom_f3.s – udržovaný zdroj patche kokpitu a laseru v assembleru.
+  src/lead.s, src/build_lead.py – oprava předsazení.
+  src/clip_edges.s, src/build_clip_edges.py – oprava hran polygonů.
+  src/build_thermal.py – společné termální barvy řidiče, velitele a střelce.
+  src/mi24.s, src/build_mi24.py – přijetí povolávacího příkazu Mi-24.
+  src/hunk_executable.py – načtení a zápis relokovatelného executable.
+  src/build_assets.py – rozměry, atlasová pole, převod a komprese grafiky.
+  src/build_dark_green.py – úpravy materiálů modelů a kontrola ADF.
+  src/build_zoom_f3.py – vložení patche a kompletní sestavení Shift+F3.
+
+Sestavení nečte staré soubory z analysis/extracted, snímky emulátoru
+ani dřívější sestavení. Původní vstupní ADF a všechny PNG zůstávají
+beze změny. Sestavení používá pouze udržované skripty v src.
+
+Závislosti
+
+Použij Python 3.10 nebo novější bez přepínačů -O/-OO. Python moduly
+jsou vypsané v src/requirements.txt. Skripty upřednostňují existující
+lokální moduly v .tools/python a pak běžné prostředí Pythonu.
+Pro instalaci do čistého prostředí:
+
+  python -m pip install -r src/requirements.txt
+
+Assembler vasm musí být v .tools/vasmm68k_mot.exe (Windows),
+případně .tools/vasmm68k_mot nebo dostupný v PATH. Automaticky se
+nic nestahuje. Použitá verze v tomto projektu je vasm 1.9a.
+
+Samostatné kontroly
+
+  python src/test_st_source.py
+    Ověří přijetí změněného uloženého seznamu posádek a odmítnutí změn
+    programu, boot sektoru nebo struktury souboru na vstupní ST disketě.
+  python src/test_mi24.py
+    Ověří Mi-24 v obou hotových obrazech ADF/ST: předání rozkazu od
+    pozemní jednotky přes velitelství, původní prodlevu a vstup na mapu.
+    Kontroluje všechny časové kroky, opakované rozkazy, nedostupný
+    vrtulník a nezměněný přílet AH-64 a OH-58. Běží i při sestavení.
+    Výběr podpory, počasí a parametry vrtulníku oprava nemění.
+  python src/test_mi24_lifecycle.py
+    Důkladná samostatná regrese obou hotových obrazů (lze zadat amiga/st).
+    Ověří všechny bajty příkazů, 54 úplných cyklů podpory na platformu,
+    přílet, skutečný pohyb, odlet, čekání a další povolání. Po každém kroku
+    porovnává jednotky a prostorové tabulky s původními rutinami.
+    Kontroluje Mi-24, AH-64, OH-58 a oba typy bitevních letadel, všechny
+    časové kroky a 68000/68020. Testuje hledání cíle, střelbu, pohyb střel
+    a pád po smrtelném poškození bez opětovného oživení vraku.
+    Původní Mi-24 slouží jako kontrola po obejití jeho chybné vstupní
+    podmínky. Testovací bojiště je rovné; nejde o průchod celé kampaně.
+    Zprávy: analysis/build/mi24_lifecycle_tests.json a st/stejný název.
+  python src/test_build_assets.py
+    Úpravy atlasů, vynechání rámečků a odmítnutí neplatných PNG.
+  python src/test_lead.py
+    Ověří poslední sestavené ZoomF3_test.adf; lze předat i cestu k ADF.
+    Provádí skutečné instrukce sledování, výstřelu, vytvoření a pohybu
+    projektilu. Kontroluje AP/HEAT, všechny časové kroky, obě strany,
+    jízdu vpřed/vzad, zatáčení, ruční míření a přechod úhlu přes nulu.
+    Střelbu ze stoje porovnává přesně s původní hrou. Číselné odchylky
+    měří vodorovně bez náhodného rozptylu a bez kolizí s terénem.
+    Testy nepotřebují snímek paměti ani běžící WinUAE.
+  python src/test_zoom_f3.py
+    Testuje poslední mezivýsledek v analysis/build; běží automaticky
+    při sestavení Shift+F3. Kontroluje mimo jiné zachování cíle při
+    opakovaném F3 ↔ Shift+F3, vykreslování a obsluhu Smoke 1. Ověřuje
+    také odmítnutí neplatného laserového zachycení a zachování původního
+    chování platných měření včetně hraničních vzdáleností.
+  python src/test_clip_edges.py
+    Ověří skutečné instrukce ořezu a vyplňování polygonů v posledním ADF.
+    Reprodukuje původní svislé čáry a kontroluje jejich odstranění,
+    nezměněné čáry a horizont, všechny okraje okna a opakované využití
+    záznamů hran při odmítnutí objektu za kamerou.
+    Kontroluje také uživatelský režim 68000/68020/68040, včetně zákazu
+    privilegovaného čtení SR, který samotný Unicorn důsledně nevynucuje.
+  python src/test_thermal.py
+    Spustí původní instrukce výběru pohledu a materiálu pro všechny
+    kombinace senzorových přepínačů, dalekohledu a běžného osvětlení.
+    Ověří shodu termálních barev s původním střelcem a obnovu normálních
+    barev po vypnutí senzoru nebo přepnutí pohledu. Běží i při buildu.
+  python src/test_build_pipeline.py
+    Sestaví kopii projektu jen ze vstupů a zdrojů, i z jiného adresáře.
+    Ověří shodné opakované sestavení, promítnutí úpravy atlasu do ADF
+    a zachování posledního ADF při chybě PNG. Pracuje na dočasných kopiích.
+  python src/benchmark_zoom_f3.py
+    Spočítá instrukce 68000 a přístupy k obrazové paměti v přidané obsluze
+    ustáleného snímku. Výsledky uloží do analysis/build/zoom_performance.json.
+    Jde o režii patche, nikoli celkové FPS hry nebo výkon samotného 3D.
+
+Tyto kontroly nespouštějí okno WinUAE ani nepřebírají klávesnici a myš.
+Při chybě se build zastaví; poslední úspěšná finální ADF zůstane zachovaná.

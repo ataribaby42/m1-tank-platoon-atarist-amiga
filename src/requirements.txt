@@ -1,0 +1,4 @@
+# Installed versions used to verify this build.
+amitools==0.8.1
+Pillow==12.3.0
+unicorn==2.1.4
