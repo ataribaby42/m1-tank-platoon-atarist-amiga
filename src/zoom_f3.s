@@ -79,8 +79,13 @@ panel_begin:
         beq.s .original
         cmpi.w #3,$be(a2)
         bne.s .original
+.zoom_panel:
         tst.w $c4(a2)
         bmi.s .status
+        ; The skipped 320x200 cockpit copy also erased external VIEW text.
+        ; Clear its status rows before the native message list redraws them,
+        ; once for each buffer in the original two-frame refresh cycle.
+        bsr.w clear_status
         subq.w #1,$c4(a2)
 .status:
         jsr old0+$9f0e-$9c
@@ -99,6 +104,23 @@ panel_begin:
         jmp old0+$8314-$9c
 .no_refresh:
         jmp old0+$8322-$9c
+
+clear_status:
+        movem.l d0-d7/a0-a6,-(sp)
+        move.w 8(a2),d0
+        bsr.w get_buffer
+        bsr.w wait_blit
+        moveq #3,d7
+.plane:
+        movea.l (a6)+,a1
+        lea 192*40(a1),a1
+        moveq #79,d6
+.clear:
+        clr.l (a1)+
+        dbra d6,.clear
+        dbra d7,.plane
+        movem.l (sp)+,d0-d7/a0-a6
+        rts
 
 scale_cockpit:
         movem.l d0-d7/a0-a6,-(sp)

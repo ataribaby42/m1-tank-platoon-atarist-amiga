@@ -216,6 +216,8 @@ def verify(original_blob,patched_blob,report):
     print('ST native sprite and control tests...')
     result=dict(graphics=sprite_tests(patched,report['exports']),controls=control_tests(patched,report['exports']))
     result['cache']=cache_tests(patched,report['exports'])
+    from src.test_zoom_status import st as verify_status
+    result['status_refresh']=verify_status(patched,report['exports'])
     result['clipping']=clipping_tests(original,patched)
     result['thermal']=thermal_tests(original,patched)
     print('ST stationary/moving/turning/low-FPS fire-control tests...')

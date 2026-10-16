@@ -68,11 +68,25 @@ def compile_patch(name):
         lea 160(a1),a1
         dbra d6,.smoke_row
 '''+text[b:]
-        # Restore the software cursor before skipping the original instrument list.
-        text = replace(text, '.status:\n', '''.status:
+        # Restore the software cursor before erasing the refreshed status row;
+        # its saved background may itself still contain external VIEW text.
+        text = replace(text, '.zoom_panel:\n', '''.zoom_panel:
         move.w 8(a2),d0
         jsr original+$cc3e
 ''')
+        text = replace(text, '''        moveq #3,d7
+.plane:
+        movea.l (a6)+,a1
+        lea 192*40(a1),a1
+        moveq #79,d6
+.clear:
+        clr.l (a1)+
+        dbra d6,.clear
+        dbra d7,.plane''', '''        lea 192*160(a1),a1
+        move.w #319,d6
+.clear:
+        clr.l (a1)+
+        dbra d6,.clear''')
         a = text.index('draw_art:\n')
         b = text.index('unpack_art:\n', a)
         text = text[:a]+'        include "src/st_video.s"\n\n'+text[b:]

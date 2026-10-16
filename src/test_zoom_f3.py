@@ -135,6 +135,12 @@ def main():
     assert not screen_writes,'Requested refresh never returned to the cached path'
     u.hook_del(hook)
     results.append('Each buffer caches its cockpit and Smoke state: no pixel writes until Smoke or the view changes')
+    # The requested panel refresh erased the bottom rows before the native
+    # message scheduler (tested separately); cockpit backups exclude those rows.
+    for index in (0,1):
+        refreshed=bytearray(originals[index])
+        for p in range(4):refreshed[p*8000+7680:(p+1)*8000]=bytes(320)
+        originals[index]=bytes(refreshed)
     flag(u,0)
     for index in (0,1):
         w16(u,STATE+8,index)
@@ -247,6 +253,9 @@ def main():
     assert r16(u,BASE[33])==0 and r16(u,BASE[33]+2)==0
     results.append('Starting/resetting a mission clears zoom and saved-buffer state')
     verify_laser_acquisition()
+    from src.test_zoom_status import amiga as verify_status
+    verify_status()
+    results.append('External VIEW status pixels are cleared in both buffers; current/new messages redraw and unchanged status remains cached')
     results.append('Installed laser hook rejects invalid distances in F3 and Shift+F3 without acquiring a target or changing aim/ballistics')
     results.append('Valid laser acquisition (200..7998 m), missing targets and existing-lock failure handling match the original game')
     report=dict(cpu='Motorola 68000',checks=results,all_passed=True)

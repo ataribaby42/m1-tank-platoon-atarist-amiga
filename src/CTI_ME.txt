@@ -77,6 +77,8 @@ Vykreslování Shift+F3
   stavu. Při návratu se obnoví původní kokpit i aktuální přístroje F3.
   Původní kreslení skrytých přístrojů se během zoomu vynechá; stavový
   řádek, herní logika a nativní vykreslování 3D zůstávají aktivní.
+  Při obnově se v obou bufferech vymažou spodní řádky 192–199 a znovu
+  vykreslí aktuální zpráva, aby nezůstával údaj VIEW z externího pohledu.
   Zaměřovač a font používají řídké planární bloky vytvořené z PNG při
   buildu. Průhlednost, barevné pixely i barva upozornění se zachovávají.
 

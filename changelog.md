@@ -1,9 +1,18 @@
 # M1 Tank Platoon — Changelog
 
-Consolidated record of the modifications completed through **2026-10-15**.
+Consolidated record of the modifications completed through **2026-10-16**.
 Earlier combined Amiga builds have been confirmed working by the user.
 
 Final disk images: `output/M1TankPlatoon_modded.adf` and `output/M1TankPlatoon_modded.st`.
+
+## External-view text after Shift+F3 — Amiga and Atari ST
+
+- Fixed stale `VIEW:` text and its angle remaining at the bottom right when entering Shift+F3 from an external view.
+- Clear the bottom eight rows in both screen buffers during the normal view refresh, then let the original status-message routine repaint current messages. Unchanged frames retain the cached status line.
+- Restore the Atari ST software cursor before clearing these rows so its saved background cannot restore the old text.
+- Added instruction-level regression checks for both buffers, cockpit preservation, current/new messages and cached status updates.
+- Verified repeated F9 → Shift+F3 transitions and return to F3 in an isolated Hatari instance, including a software cursor over the old label. Both enlarged-view screen buffers have a clean status area.
+- Verified the same transition and return to F3 in a separate hidden WinUAE instance (A1200/68020, Kickstart 3.0), using both left and right Shift. The loaded patch matches the final ADF, and both enlarged-view screen buffers have clean bottom rows.
 
 ## Mi-24D support arrival — Amiga and Atari ST
 
